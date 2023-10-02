@@ -13,16 +13,45 @@ class DFA {
     Node() : terminal(false) {}
   };
 
+  bool complete_ = false;
   // start: 0
   std::vector<Node> nodes_;
 
  public:
-  DFA(NFA nfa) {
+  explicit DFA(const NFA &nfa) {
     BuildDFA(nfa.start_, nfa.nodes_);
   }
 
+  void CompleteDFA() {
+    if (complete_) {
+      return;
+    }
+
+    nodes_.emplace_back();
+    for (Node& node : nodes_) {
+      for (char chr = kFirstCharacter; chr < kFirstCharacter + kAlphabetSize; ++chr) {
+        if (!node.edges.count(chr)) {
+          node.edges[chr] = nodes_.size() - 1;
+        }
+      }
+    }
+
+    complete_ = true;
+  }
+
+  DFA GetComplement() {
+    CompleteDFA();
+    DFA complement = *this;
+
+    for (Node& node : complement.nodes_) {
+      node.terminal = !node.terminal;
+    }
+
+    return complement;
+  }
+
  private:
-  void BuildDFA(uint32_t nfa_start, std::vector<NFA::Node> nfa_nodes) {
+  void BuildDFA(uint32_t nfa_start, const std::vector<NFA::Node>& nfa_nodes) {
     // sets of node index in new array, which connected with sets of NFA nodes
     std::map<std::set<uint32_t>, uint32_t> index_by_set;
     std::map<uint32_t, std::set<uint32_t>> set_by_index;
@@ -51,8 +80,8 @@ class DFA {
         terminal = false;
 
         for (uint32_t nfa_node : set_by_index[node_index]) {
-          new_node.insert(nfa_nodes[nfa_node].edges[chr].begin(),
-                          nfa_nodes[nfa_node].edges[chr].end());
+          new_node.insert(nfa_nodes[nfa_node].edges.at(chr).begin(),
+                          nfa_nodes[nfa_node].edges.at(chr).end());
           if (nfa_nodes[nfa_start].terminal) {
             terminal = true;
           }
