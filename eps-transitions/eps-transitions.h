@@ -8,7 +8,10 @@
 
 const char kEps = '1';
 
+class DFA;
+
 class NFA {
+ friend DFA;
  protected:
   struct Node {
     std::map<char, std::set<uint32_t>> edges;
