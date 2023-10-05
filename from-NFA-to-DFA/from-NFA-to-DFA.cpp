@@ -82,7 +82,7 @@ class DFA {
         for (uint32_t nfa_node : set_by_index[node_index]) {
           new_node.insert(nfa_nodes[nfa_node].edges.at(chr).begin(),
                           nfa_nodes[nfa_node].edges.at(chr).end());
-          if (nfa_nodes[nfa_start].terminal) {
+          if (nfa_nodes[nfa_node].terminal) {
             terminal = true;
           }
         }
