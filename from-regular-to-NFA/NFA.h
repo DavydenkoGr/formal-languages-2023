@@ -85,10 +85,11 @@ class NFA {
 
     // New terminal node
     nodes_[terminal_].terminal = false;
-
     terminal_ = nodes_.size();
+
     nodes_.emplace_back();
     nodes_[nodes_.size() - 1].terminal = true;
+    nodes_[terminal_].edges[kEps].insert(start_);
   }
 
   void Concatenate(const NFA& nfa) {
@@ -128,6 +129,61 @@ class NFA {
     terminal_ = nodes_.size();
     nodes_.emplace_back();
     nodes_[nodes_.size() - 1].terminal = true;
+  }
+
+  void RemoveEpsTransitions() {
+    std::vector<std::set<uint32_t>> eps_achievable(nodes_.size());
+    std::vector<std::set<uint32_t>> temp(nodes_.size());
+
+    // zero iteration of transitive closure
+    for (uint32_t i = 0; i < nodes_.size(); ++i) {
+      eps_achievable[i].insert(i);
+    }
+
+    // others iterations
+    for (uint32_t _ = 0; _ < nodes_.size(); ++_) {
+      for (uint32_t i = 0; i < nodes_.size(); ++i) {
+        temp[i].clear();
+
+        for (uint32_t eps_neighbour : eps_achievable[i]) {
+          temp[i].insert(nodes_[eps_neighbour].edges[kEps].begin(),
+                         nodes_[eps_neighbour].edges[kEps].end());
+        }
+      }
+
+      for (uint32_t i = 0; i < nodes_.size(); ++i) {
+        nodes_[i].edges[kEps].insert(temp[i].begin(), temp[i].end());
+        eps_achievable[i] = temp[i];
+      }
+    }
+
+    // new terminals
+    for (Node& node : nodes_) {
+      for (uint32_t eps_neighbour : node.edges[kEps]) {
+        if (nodes_[eps_neighbour].terminal) {
+          node.terminal = true;
+          break;
+        }
+      }
+    }
+
+    // edges to accessible by eps + letter
+    for (Node& node : nodes_) {
+      for (uint32_t eps_neighbour : node.edges[kEps]) {
+        for (const auto& pair : nodes_[eps_neighbour].edges) {
+          if (pair.first == kEps) {
+            continue;
+          }
+
+          node.edges[pair.first].insert(pair.second.begin(), pair.second.end());
+        }
+      }
+    }
+
+    // remove eps edges
+    for (Node& node : nodes_) {
+      node.edges.erase(kEps);
+    }
   }
 };
 
