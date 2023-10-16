@@ -11,3 +11,8 @@ TEST(ParseRegularTest, Throw) {
   EXPECT_THROW(ParseRegular("+a"), std::runtime_error);
   EXPECT_THROW(ParseRegular("a-"), std::runtime_error);
 }
+
+TEST(ParseRegularTest, CorrectNFA) {
+  EXPECT_TRUE(ParseRegular("bab.+").FindSubword('a', 1));
+  EXPECT_FALSE(ParseRegular("bab.+").FindSubword('a', 2));
+}
