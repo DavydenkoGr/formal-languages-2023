@@ -186,7 +186,7 @@ class NFA {
     }
   }
 
-  void rebuildToSubwordNFA() {
+  void RebuildToSubwordNFA() {
     // New start node
     Node new_start;
 
@@ -200,6 +200,36 @@ class NFA {
       nodes_[start_].edges[kEps].insert(i);
       nodes_[i].terminal = true;
     }
+
+    RemoveEpsTransitions();
+  }
+
+  bool FindSubword(char chr, uint32_t count) {
+    std::vector<std::set<uint32_t>> achievable(nodes_.size());
+    std::vector<std::set<uint32_t>> temp(nodes_.size());
+
+    // zero iteration of transitive closure
+    for (uint32_t i = 0; i < nodes_.size(); ++i) {
+      achievable[i].insert(i);
+    }
+
+    // others iterations
+    for (uint32_t _ = 0; _ < count; ++_) {
+      for (uint32_t i = 0; i < nodes_.size(); ++i) {
+        temp[i].clear();
+
+        for (uint32_t chr_neighbour : achievable[i]) {
+          temp[i].insert(nodes_[chr_neighbour].edges[chr].begin(),
+                         nodes_[chr_neighbour].edges[chr].end());
+        }
+      }
+
+      for (uint32_t i = 0; i < nodes_.size(); ++i) {
+       achievable[i] = temp[i];
+      }
+    }
+
+    return !achievable[start_].empty();
   }
 };
 
