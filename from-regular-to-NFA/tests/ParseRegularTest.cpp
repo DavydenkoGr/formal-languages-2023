@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "../functions.h"
+#include "../Functions/Functions.h"
 
 TEST(ParseRegularTest, NoThrow) {
   EXPECT_NO_THROW(ParseRegular("ab+c.aba.*.bac.+.+*"));

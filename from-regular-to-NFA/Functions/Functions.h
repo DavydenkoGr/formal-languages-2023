@@ -3,7 +3,7 @@
 #include <set>
 #include <vector>
 
-#include "NFA.h"
+#include "../NFA/NFA.h"
 
 NFA ParseRegular(const std::string& regular);
 

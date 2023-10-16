@@ -16,10 +16,9 @@ add_executable(
         tests/run_tests.cpp
         tests/MatchRegularTest.cpp
         tests/ParseRegularTest.cpp
-        MatchRegular.cpp
-        ParseRegular.cpp
-        functions.h
-        NFA.h
+        Functions/MatchRegular.cpp
+        Functions/ParseRegular.cpp
+        NFA/NFA.cpp
 )
 
 target_link_libraries(

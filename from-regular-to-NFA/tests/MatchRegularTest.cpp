@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "../functions.h"
+#include "../Functions/Functions.h"
 
 TEST(MatchRegularTest, Negative) {
   EXPECT_FALSE(MatchRegular("ab+c.aba.*.bac.+.+*", 'a', 4));

@@ -1,4 +1,4 @@
-#include "functions.h"
+#include "Functions.h"
 
 const std::set<char> kAlphabet = {'a', 'b', 'c', '1'};
 
