@@ -1,4 +1,6 @@
+#include <iostream>
 #include "eps-transitions.h"
+#include "../from-NFA-to-DFA/from-NFA-to-DFA.cpp"
 
 //0
 //
@@ -35,6 +37,9 @@ int main() {
   NFA nfa(3, 0, terminal, transitions);
 
   nfa.RemoveEpsTransitions();
+  DFA dfa = DFA(nfa);
+
+  std::cout << 1;
 }
 
 //0

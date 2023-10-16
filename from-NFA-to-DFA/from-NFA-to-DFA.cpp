@@ -18,7 +18,7 @@ class DFA {
   std::vector<Node> nodes_;
 
  public:
-  explicit DFA(const NFA &nfa) {
+  explicit DFA(const NFA& nfa) {
     BuildDFA(nfa.start_, nfa.nodes_);
   }
 
@@ -80,6 +80,10 @@ class DFA {
         terminal = false;
 
         for (uint32_t nfa_node : set_by_index[node_index]) {
+          if (!nfa_nodes[nfa_node].edges.count(chr)) {
+            continue;
+          }
+
           new_node.insert(nfa_nodes[nfa_node].edges.at(chr).begin(),
                           nfa_nodes[nfa_node].edges.at(chr).end());
           if (nfa_nodes[nfa_node].terminal) {
