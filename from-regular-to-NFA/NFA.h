@@ -27,8 +27,7 @@ class NFA {
     for (const Node& node : nfa.nodes_) {
       Node copy_node;
 
-      for (char chr = 0; chr < 26; ++chr) {
-        chr += 'a';
+      for (char chr = 'a'; chr < 'a' + 26; ++chr) {
 
         if (!node.edges.count(chr)) {
           continue;
