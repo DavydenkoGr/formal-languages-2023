@@ -10,8 +10,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 enable_testing()
 
 add_executable(
-        MatchRegularTest
+        tests
         tests/MatchRegularTest.cpp
+        tests/ParseRegularTest.cpp
         MatchRegular.cpp
         ParseRegular.cpp
         functions.h
@@ -19,9 +20,9 @@ add_executable(
 )
 
 target_link_libraries(
-        MatchRegularTest
+        tests
         GTest::gtest_main
 )
 
 include(GoogleTest)
-gtest_discover_tests(MatchRegularTest)
+gtest_discover_tests(tests)

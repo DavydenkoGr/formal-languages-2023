@@ -14,6 +14,10 @@ NFA ParseRegular(const std::string& regular) {
       continue;
     }
 
+    if (stack.empty()) {
+      throw std::runtime_error("Incorrect regular");
+    }
+
     switch (chr) {
       case '.':
         stack[stack.size() - 2].Concatenate(stack.back());
@@ -23,10 +27,16 @@ NFA ParseRegular(const std::string& regular) {
         stack[stack.size() - 2].Add(stack.back());
         stack.pop_back();
         continue;
-      default:;
+      case '*':
         stack.back().Kleene();
         continue;
+      default:
+        throw std::runtime_error("Incorrect regular");
     }
+  }
+
+  if (stack.size() != 1) {
+    throw std::runtime_error("Incorrect regular");
   }
 
   stack.back().RebuildToSubwordNFA();
