@@ -185,6 +185,22 @@ class NFA {
       node.edges.erase(kEps);
     }
   }
+
+  void rebuildToSubwordNFA() {
+    // New start node
+    Node new_start;
+
+    new_start.edges[kEps].insert(start_);
+
+    start_ = nodes_.size();
+    nodes_.push_back(new_start);
+
+    // All nodes terminal + eps transition from new start node
+    for (uint32_t i = 0; i < nodes_.size() - 1; ++i) {
+      nodes_[start_].edges[kEps].insert(i);
+      nodes_[i].terminal = true;
+    }
+  }
 };
 
 #endif
