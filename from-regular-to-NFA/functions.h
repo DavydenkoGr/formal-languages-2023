@@ -7,4 +7,4 @@
 
 NFA ParseRegular(const std::string& regular);
 
-bool MatchRegular(const std::string regular, char chr, uint32_t count);
+bool MatchRegular(const std::string& regular, char chr, uint32_t count);
