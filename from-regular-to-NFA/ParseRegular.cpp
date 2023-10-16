@@ -29,5 +29,6 @@ NFA ParseRegular(const std::string& regular) {
     }
   }
 
+  stack.back().RebuildToSubwordNFA();
   return stack.back();
 }

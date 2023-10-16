@@ -187,6 +187,8 @@ class NFA {
   }
 
   void RebuildToSubwordNFA() {
+    RemoveEpsTransitions();
+
     // New start node
     Node new_start;
 
