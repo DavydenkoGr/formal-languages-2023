@@ -7,4 +7,5 @@ TEST(MatchRegularTest, Negative) {
 
 TEST(MatchRegularTest, Positive) {
   EXPECT_TRUE(MatchRegular("acb..bab.c..ab.ba.+.+*a.", 'b', 2));
+  EXPECT_TRUE(MatchRegular("a*", 'a', 1'000'000'000));
 }

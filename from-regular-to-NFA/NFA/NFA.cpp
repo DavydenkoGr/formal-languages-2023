@@ -185,6 +185,10 @@ void NFA::RebuildToSubwordNFA() {
 }
 
 bool NFA::FindSubword(char chr, uint32_t count) {
+  if (count > nodes_.size()) {
+    count = nodes_.size() + 1;
+  }
+
   std::vector<std::set<uint32_t>> achievable(nodes_.size());
   std::vector<std::set<uint32_t>> temp(nodes_.size());
 
