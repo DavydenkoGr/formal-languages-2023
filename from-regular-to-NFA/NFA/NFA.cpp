@@ -1,5 +1,7 @@
 #include "NFA.h"
 
+NFA::Node::Node() : terminal(false) {}
+
 NFA::NFA(size_t size, uint32_t start, const std::vector<uint32_t>& terminal,
          const std::vector<std::map<char, std::set<uint32_t>>>& edges_array)
     : start_(start) {

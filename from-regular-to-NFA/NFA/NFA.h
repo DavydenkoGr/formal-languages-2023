@@ -13,7 +13,7 @@ class NFA {
   struct Node {
     std::map<char, std::set<uint32_t>> edges;
     bool terminal;
-    Node() : terminal(false) {}
+    Node();
   };
 
   uint32_t start_;
