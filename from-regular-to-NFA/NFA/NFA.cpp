@@ -189,29 +189,19 @@ bool NFA::FindSubword(char chr, uint32_t count) {
     count = nodes_.size() + 1;
   }
 
-  std::vector<std::set<uint32_t>> achievable(nodes_.size());
-  std::vector<std::set<uint32_t>> temp(nodes_.size());
+  std::set<uint32_t> achievable = {start_};
+  std::set<uint32_t> temp;
 
-  // zero iteration of transitive closure
-  for (uint32_t i = 0; i < nodes_.size(); ++i) {
-    achievable[i].insert(i);
-  }
-
-  // others iterations
   for (uint32_t _ = 0; _ < count; ++_) {
-    for (uint32_t i = 0; i < nodes_.size(); ++i) {
-      temp[i].clear();
+    temp.clear();
 
-      for (uint32_t chr_neighbour : achievable[i]) {
-        temp[i].insert(nodes_[chr_neighbour].edges[chr].begin(),
-                       nodes_[chr_neighbour].edges[chr].end());
-      }
+    for (uint32_t chr_neighbour : achievable) {
+      temp.insert(nodes_[chr_neighbour].edges[chr].begin(),
+                  nodes_[chr_neighbour].edges[chr].end());
     }
 
-    for (uint32_t i = 0; i < nodes_.size(); ++i) {
-      achievable[i] = temp[i];
-    }
+    achievable = temp;
   }
 
-  return !achievable[start_].empty();
+  return !achievable.empty();
 }
