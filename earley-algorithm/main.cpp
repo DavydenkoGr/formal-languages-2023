@@ -1,8 +1,8 @@
 #include <cstdint>
 #include <iostream>
-#include <vector>
 #include <map>
 #include <set>
+#include <vector>
 
 const char kEps = '#';
 const char kEndl = '$';
@@ -15,7 +15,7 @@ struct Rule {
 
 bool operator<(const Rule& rule1, const Rule& rule2) {
   return rule1.nonterminal < rule2.nonterminal ||
-         (rule1.nonterminal < rule2.nonterminal &&
+         (rule1.nonterminal == rule2.nonterminal &&
           rule1.derivation < rule2.derivation);
 }
 
@@ -35,8 +35,7 @@ class Situation {
         next_index(next_index) {}
 
   Situation(const Rule& rule, uint32_t previous_position, uint32_t next_index)
-      : rule{rule.nonterminal, rule.derivation}, previous_position(previous_position),
-        next_index(next_index) {}
+      : rule(rule), previous_position(previous_position), next_index(next_index) {}
 };
 
 bool operator<(const Situation& situation1, const Situation& situation2) {
@@ -53,9 +52,9 @@ class Grammar {
   char start;
   std::vector<Rule> rules;
 
-  Grammar(char start, std::vector<Rule> rules) : start(start), rules(rules) {}
+  Grammar(char start, const std::vector<Rule>& rules)
+      : start(start), rules(rules) {}
 };
-
 
 void Scan(const std::string& word, uint32_t position,
           std::vector<std::map<char, std::set<Situation>>>& situations) {
@@ -63,7 +62,7 @@ void Scan(const std::string& word, uint32_t position,
     uint32_t next_index = situation.next_index + 1;
     char next_chr = situation.rule.derivation[next_index];
     situations[position + 1][next_chr].insert(
-        Situation(situation.rule.nonterminal, situation.rule.derivation, position, next_index)
+        Situation(situation.rule, position, next_index)
     );
   }
 }
@@ -71,7 +70,7 @@ void Scan(const std::string& word, uint32_t position,
 void Predict(const Grammar& grammar, uint32_t position,
              std::vector<std::map<char, std::set<Situation>>>& situations) {
   for (char nonterminal = 'A'; nonterminal <= 'Z'; ++nonterminal) {
-    for (const auto& _ : situations[position][nonterminal]) { // ???
+    if (!situations[position][nonterminal].empty()) {
       for (const Rule& rule : grammar.rules) {
         if (rule.nonterminal == nonterminal) {
           situations[position][rule.derivation[0]].insert(
@@ -86,7 +85,8 @@ void Predict(const Grammar& grammar, uint32_t position,
 void Complete(uint32_t position,
               std::vector<std::map<char, std::set<Situation>>>& situations) {
   for (const Situation& situation : situations[position][kEndl]) {
-    for (const Situation& previous_situation : situations[situation.previous_position][situation.rule.nonterminal]) {
+    for (const Situation& previous_situation
+         : situations[situation.previous_position][situation.rule.nonterminal]) {
       uint32_t next_index = previous_situation.next_index + 1;
       char next_chr = previous_situation.rule.derivation[next_index];
       situations[position][next_chr].insert(
@@ -98,9 +98,9 @@ void Complete(uint32_t position,
 
 bool Earley(const Grammar& grammar, const std::string& word) {
   std::vector<std::map<char, std::set<Situation>>> situations(word.length() + 1);
-  // (S' -> *S, 0) in D0[S]
+  // (S' -> *S, 0) in D0[S']=
   situations[0][grammar.start].insert(
-      Situation(kStart, std::string(1, grammar.start), 0, 0)
+      Situation(kStart, std::string(1, grammar.start) + kEndl, 0, 0)
   );
 
   bool changes = true;
@@ -131,10 +131,32 @@ bool Earley(const Grammar& grammar, const std::string& word) {
     }
   }
 
-  // check if (S' -> S*, len(word)) in Dlen(word)[S]
-  Situation result_situation(kStart, {1, grammar.start}, 0, word.length());
-  return situations[word.length() - 1][kStart].count(result_situation);
+  // check if (S' -> S*, len(word)) in Dlen(word)[S']
+  Situation result_situation(
+      kStart, std::string(1, grammar.start) + kEndl, 0, word.length()
+  );
+
+  return situations[word.length()][kStart].count(result_situation);
 }
+
+class AlgorithmEarley {
+  Grammar grammar;
+
+  void fit(const Grammar& new_grammar) {
+    grammar.start = new_grammar.start;
+
+    grammar.rules.clear();
+    for (const Rule& rule : new_grammar.rules) {
+      grammar.rules.emplace_back(
+          Rule{rule.nonterminal, rule.derivation + kEndl}
+      );
+    }
+  }
+
+  bool predict(const std::string& word) {
+    return Earley(grammar, word);
+  }
+};
 
 int main() {
   return 0;
