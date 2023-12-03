@@ -52,6 +52,8 @@ class Grammar {
   char start;
   std::vector<Rule> rules;
 
+  Grammar() = default;
+
   Grammar(char start, const std::vector<Rule>& rules)
       : start(start), rules(rules) {}
 };
@@ -62,84 +64,110 @@ void Scan(const std::string& word, uint32_t position,
     uint32_t next_index = situation.next_index + 1;
     char next_chr = situation.rule.derivation[next_index];
     situations[position + 1][next_chr].insert(
-        Situation(situation.rule, position, next_index)
+        Situation(situation.rule, situation.previous_position, next_index)
     );
   }
 }
 
-void Predict(const Grammar& grammar, uint32_t position,
+bool Predict(const Grammar& grammar, uint32_t position,
              std::vector<std::map<char, std::set<Situation>>>& situations) {
+  bool changes = false;
+
+  if (!situations[position][kStart].empty()) {
+    for (const Rule& rule : grammar.rules) {
+      if (rule.nonterminal == kStart) {
+        Situation new_situation(rule, position, 0);
+        if (situations[position][rule.derivation[0]].count(new_situation)) {
+          continue;
+        }
+
+        changes = true;
+        situations[position][rule.derivation[0]].insert(new_situation);
+      }
+    }
+  }
+
   for (char nonterminal = 'A'; nonterminal <= 'Z'; ++nonterminal) {
     if (!situations[position][nonterminal].empty()) {
       for (const Rule& rule : grammar.rules) {
         if (rule.nonterminal == nonterminal) {
-          situations[position][rule.derivation[0]].insert(
-              Situation(rule, position, 0)
-          );
+          Situation new_situation(rule, position, 0);
+
+          if (situations[position][rule.derivation[0]].count(new_situation)) {
+            continue;
+          }
+
+          changes = true;
+          situations[position][rule.derivation[0]].insert(new_situation);
         }
       }
     }
   }
+
+  return changes;
 }
 
-void Complete(uint32_t position,
+bool Complete(uint32_t position,
               std::vector<std::map<char, std::set<Situation>>>& situations) {
+  bool changes = false;
+
   for (const Situation& situation : situations[position][kEndl]) {
     for (const Situation& previous_situation
          : situations[situation.previous_position][situation.rule.nonterminal]) {
       uint32_t next_index = previous_situation.next_index + 1;
       char next_chr = previous_situation.rule.derivation[next_index];
-      situations[position][next_chr].insert(
-          Situation(previous_situation.rule, position, next_index)
+
+      Situation new_situation(
+          previous_situation.rule, previous_situation.previous_position, next_index
       );
+
+      if (situations[position][next_chr].count(new_situation)) {
+        continue;
+      }
+
+      changes = true;
+      situations[position][next_chr].insert(new_situation);
     }
   }
+
+  return changes;
 }
 
 bool Earley(const Grammar& grammar, const std::string& word) {
   std::vector<std::map<char, std::set<Situation>>> situations(word.length() + 1);
-  // (S' -> *S, 0) in D0[S']=
+  // put (S' -> *S, 0) in D0[S']
   situations[0][grammar.start].insert(
-      Situation(kStart, std::string(1, grammar.start) + kEndl, 0, 0)
+      Situation(grammar.rules.back(), 0, 0)
   );
 
   bool changes = true;
-    while (changes) {
-      uint32_t size = situations[0].size();
-      Predict(grammar, 0, situations);
-      Complete(0, situations);
-
-      changes = false;
-      if (situations[0].size() != size) {
-        changes = true;
-      }
-    }
+  while (changes) {
+    changes = false;
+    changes |= Predict(grammar, 0, situations);
+    changes |= Complete(0, situations);
+  }
 
   for (uint32_t i = 0; i < word.length(); ++i) {
     Scan(word, i, situations);
 
     changes = true;
     while (changes) {
-      uint32_t size = situations[i + 1].size();
-      Predict(grammar, i + 1, situations);
-      Complete(i + 1, situations);
-
       changes = false;
-      if (situations[i + 1].size() != size) {
-        changes = true;
-      }
+      changes |= Predict(grammar, i + 1, situations);
+      changes |= Complete(i + 1, situations);
     }
   }
 
   // check if (S' -> S*, len(word)) in Dlen(word)[S']
   Situation result_situation(
-      kStart, std::string(1, grammar.start) + kEndl, 0, word.length()
+      grammar.rules.back(), 0, 1
   );
 
-  return situations[word.length()][kStart].count(result_situation);
+  return situations[word.length()][kEndl].count(result_situation);
 }
 
 class AlgorithmEarley {
+ public:
   Grammar grammar;
 
   void fit(const Grammar& new_grammar) {
@@ -151,6 +179,10 @@ class AlgorithmEarley {
           Rule{rule.nonterminal, rule.derivation + kEndl}
       );
     }
+
+    grammar.rules.push_back(
+        Rule{kStart, std::string(1, grammar.start) + kEndl}
+    );
   }
 
   bool predict(const std::string& word) {
@@ -159,5 +191,25 @@ class AlgorithmEarley {
 };
 
 int main() {
+  AlgorithmEarley ae;
+
+  std::vector<Rule> rules;
+  rules.emplace_back(Rule{'S', "aB"});
+  rules.emplace_back(Rule{'A', "Ba"});
+  rules.emplace_back(Rule{'A', "a"});
+  rules.emplace_back(Rule{'B', "ABC"});
+  rules.emplace_back(Rule{'B', "b"});
+  rules.emplace_back(Rule{'C', "BA"});
+  rules.emplace_back(Rule{'C', "c"});
+
+  Grammar grammar;
+  grammar.start = 'S';
+  grammar.rules = rules;
+
+  ae.fit(grammar);
+  std::cout << ae.predict("aaa");
+  std::cout << ae.predict("aaba");
+  std::cout << ae.predict("ababba");
+
   return 0;
 }
