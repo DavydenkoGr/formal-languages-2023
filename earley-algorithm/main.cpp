@@ -191,8 +191,6 @@ class AlgorithmEarley {
 };
 
 int main() {
-  AlgorithmEarley AE;
-
   uint32_t nonterminal_count;
   uint32_t terminal_count;
   uint32_t rules_count;
