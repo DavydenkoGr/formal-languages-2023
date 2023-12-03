@@ -170,7 +170,6 @@ class AlgorithmEarley {
   Grammar grammar;
 
   void fit(const Grammar& new_grammar) {
-
     grammar.start = new_grammar.start;
 
     grammar.rules.clear();
