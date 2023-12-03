@@ -185,7 +185,7 @@ class AlgorithmEarley {
     );
   }
 
-  bool predict(const std::string& word) {
+  bool predict(const std::string& word) const {
     return Earley(grammar, word);
   }
 };
