@@ -4,7 +4,6 @@
 #include <set>
 #include <vector>
 
-const char kEps = '#';
 const char kEndl = '$';
 const char kStart = '&';
 
@@ -171,6 +170,7 @@ class AlgorithmEarley {
   Grammar grammar;
 
   void fit(const Grammar& new_grammar) {
+
     grammar.start = new_grammar.start;
 
     grammar.rules.clear();
@@ -191,25 +191,80 @@ class AlgorithmEarley {
 };
 
 int main() {
-  AlgorithmEarley ae;
+  AlgorithmEarley AE;
 
+  uint32_t nonterminal_count;
+  uint32_t terminal_count;
+  uint32_t rules_count;
+  std::cin >> nonterminal_count >> terminal_count >> rules_count;
+
+  std::string nonterminals;
+  std::cin >> nonterminals;
+  for (char nonterminal : nonterminals) {
+    if (!('A' <= nonterminal && nonterminal <= 'Z')) {
+      throw std::runtime_error("Incorrect nonterminal");
+    }
+  }
+
+  std::string terminals;
+  std::cin >> terminals;
+  for (char terminal : terminals) {
+    if (('A' <= terminal && terminal <= 'Z') ||
+        terminal == kEndl || terminal == kStart) {
+      throw std::runtime_error("Incorrect terminal");
+    }
+  }
+
+  Rule configured_rule;
   std::vector<Rule> rules;
-  rules.emplace_back(Rule{'S', "aB"});
-  rules.emplace_back(Rule{'A', "Ba"});
-  rules.emplace_back(Rule{'A', "a"});
-  rules.emplace_back(Rule{'B', "ABC"});
-  rules.emplace_back(Rule{'B', "b"});
-  rules.emplace_back(Rule{'C', "BA"});
-  rules.emplace_back(Rule{'C', "c"});
+  char rule_nonterminal;
+  std::string space;
+  std::string derivation;
+  for (uint32_t i = 0; i < rules_count; ++i) {
+    std::cin >> rule_nonterminal >> space;
+    if (std::cin.peek() == '\n') {
+      derivation = "";
+    } else {
+      std::cin >> derivation;
+    }
 
-  Grammar grammar;
-  grammar.start = 'S';
-  grammar.rules = rules;
+    if (!('A' <= rule_nonterminal && rule_nonterminal <= 'Z')) {
+      throw std::runtime_error("Incorrect nonterminal");
+    }
 
-  ae.fit(grammar);
-  std::cout << ae.predict("aaa");
-  std::cout << ae.predict("aaba");
-  std::cout << ae.predict("ababba");
+    for (char chr : derivation) {
+      if (chr == kEndl || chr == kStart) {
+        throw std::runtime_error("Incorrect derivation");
+      }
+    }
 
-  return 0;
+    configured_rule = {rule_nonterminal, derivation};
+    rules.push_back(configured_rule);
+  }
+
+  char start;
+  std::cin >> start;
+  if (!('A' <= start && start <= 'Z')) {
+    throw std::runtime_error("Incorrect start");
+  }
+
+  Grammar grammar(start, rules);
+  AlgorithmEarley earley;
+  earley.fit(grammar);
+
+  uint32_t request_count;
+  std::string word;
+  std::cin >> request_count;
+  for (uint32_t i = 0; i < request_count; ++i) {
+    std::cin >> word;
+
+    for (char chr : word) {
+      if (('A' <= chr && chr <= 'Z') ||
+          chr == kEndl || chr == kStart) {
+        throw std::runtime_error("Incorrect word");
+      }
+    }
+
+    std::cout << (earley.predict(word) ? "YES" : "NO") << '\n';
+  }
 }
