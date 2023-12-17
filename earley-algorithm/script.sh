@@ -1,2 +1,2 @@
-g++ main.cpp -o earley
-./earley
+g++ main.cpp earley/earley.cpp -o example
+./example
